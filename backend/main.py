@@ -26,12 +26,16 @@ def make_brave_request(url, params):
         except RateLimitError:
             continue
 
-def get_web_results(query: str, safe_search: str):
-    url = "https://api.search.brave.com/res/v1/web/search"
+def get_web_results(query: str, safe_search: str, is_videos: str):
+    result_type = "videos" if is_videos else "web"
+    url = "https://api.search.brave.com/res/v1/" + result_type + "/search"
     params = { "q": query, "safesearch": safe_search }
     response = make_brave_request(url, params)
     if response != None and response.status_code == 200:
-        return response.json()["web"]["results"]
+        if (is_videos):
+            return response.json()["results"]
+        else:
+            return response.json()["web"]["results"]
     return None
 
 def get_img_results(query: str, safe_search: str):
@@ -109,14 +113,18 @@ app = Flask(__name__)
 def results():
     query = request.args.get("q")
     safe_search = request.args.get("safe")
+    videos = True if request.args.get("videos") == "true" else False
     if (query == None):
         return "noquery"
     if (safe_search == None):
         safe_search = "strict"
-    results = get_web_results(query, safe_search)
+    results = get_web_results(query, safe_search, videos)
     if (results == None):
         return "noresults"
-    infobox = get_infobox(results, query)
+    if (not videos):
+        infobox = get_infobox(results, query)
+    else:
+        infobox = None
     infobox = "null" if (infobox == None) else infobox
     return {
         "infobox": infobox,
