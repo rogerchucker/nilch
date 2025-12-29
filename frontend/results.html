@@ -461,6 +461,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const safeSearch = urlParams.get('safe') || "strict";
         const query = urlParams.get('q');
+        const failed = urlParams.get('failed') || "false";
         const encodedQuery = encodeURIComponent(query);
         const page = parseInt(urlParams.get('page') || "0");
         
@@ -487,7 +488,7 @@
         // Load saved theme
         if (localStorage.getItem('theme') === 'light' || window.matchMedia('(prefers-color-scheme: light)').matches) {
             document.body.classList.add('light-mode');
-            document.querySelector('.theme-toggle').textContent = '<i class="bi bi-sun"></i>';
+            document.querySelector('.theme-toggle').innerHTML = '<i class="bi bi-sun"></i>';
         }
         
         function matchBang(query) {
@@ -553,7 +554,13 @@
                     document.getElementById("results").innerHTML = '<p>There was an error, please try again: noquery</p>';
                     return;
                 } else if (resultsResponse == "noresults") {
-                    window.location.reload();
+                    if (failed == "true") {
+                        document.getElementById("results").innerHTML = "<h1>Woah!</h1><p>nilch has been getting unexpected amounts of traffic, thousands of searches within an hour or two! Unfortunately, this means API limits have been surpassed. <br><br><b>This should be fixed within one day</b>.</p><br><a href='https://duckduckgo.com/" + encodeURIComponent(query) + "'>Search the same query on DuckDuckGo</a> until then?";
+                        return;
+                        return;
+                    } else {
+                        window.location.url = window.location.url + "&failed=true";
+                    }
                 }
                 const resultsData = JSON.parse(resultsResponse); // Parse the JSON string
                 const searchResults = resultsData.results;

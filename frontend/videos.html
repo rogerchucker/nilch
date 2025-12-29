@@ -520,7 +520,7 @@
         // Load saved theme
         if (localStorage.getItem('theme') === 'light' || window.matchMedia('(prefers-color-scheme: light)').matches) {
             document.body.classList.add('light-mode');
-            document.querySelector('.theme-toggle').textContent = '<i class="bi bi-sun"></i>';
+            document.querySelector('.theme-toggle').innerHTML = '<i class="bi bi-sun"></i>';
         }
         
         function matchBang(query) {
