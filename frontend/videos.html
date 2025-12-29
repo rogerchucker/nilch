@@ -499,8 +499,7 @@
                     document.getElementById("results").innerHTML = '<p>There was an error, please try again: noquery</p>';
                     return;
                 } else if (resultsResponse == "noresults") {
-                    document.getElementById("results").innerHTML = '<p>There was an error, please try again: noresults</p>';
-                    return;
+                    document.location.reload();
                 }
                 const resultsData = JSON.parse(resultsResponse).results; // Parse the JSON string
                 const results = document.getElementById("results");
