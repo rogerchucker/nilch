@@ -15,6 +15,39 @@ WIKIPEDIA_API_HEADERS = {
     "User-Agent": "nilch/1.0 (jake.stbu@gmail.com)"
 }
 
+recent_searches = []
+
+# Returns results
+def add_recent_search(query: str, safe_search: str, is_videos: str, page: int, results):
+    recent_searches.append({
+        "query": query,
+        "safe": safe_search,
+        "is_videos": is_videos,
+        "page": page,
+        "results": results
+    })
+    if (len(recent_searches) >= 20):
+        recent_searches.pop(0)
+    return results
+
+# Returns None if not in cache, otherwise search results
+def check_for_recent_search(query: str, safe_search: str, is_videos: str, page: int):
+    criteria = {
+        "query": query,
+        "safe": safe_search,
+        "is_videos": is_videos,
+        "page": page
+    }
+    for search in recent_searches:
+        match = all(
+            search.get(key) == value 
+            for key, value in criteria.items() 
+            if key != "results"
+        )
+        if match:
+            return search.get("results")
+    return None
+
 def make_brave_request(url, params):
     for key in BRAVE_SEARCH_API_KEYS:
         headers = BRAVE_SEARCH_API_HEADERS
@@ -27,15 +60,20 @@ def make_brave_request(url, params):
             continue
 
 def get_web_results(query: str, safe_search: str, is_videos: str, page: int):
+    recent = check_for_recent_search(query, safe_search, is_videos, page)
+    if (recent != None):
+        print("returning from cache!")
+        return recent
+    print("original search!")
     result_type = "videos" if is_videos else "web"
     url = "https://api.search.brave.com/res/v1/" + result_type + "/search"
     params = { "q": query, "safesearch": safe_search, "count": 10, "offset": page }
     response = make_brave_request(url, params)
     if response != None and response.status_code == 200:
         if (is_videos):
-            return response.json()["results"]
+            return add_recent_search(query, safe_search, is_videos, page, response.json()["results"])
         else:
-            return response.json()["web"]["results"]
+            return add_recent_search(query, safe_search, is_videos, page, response.json()["web"]["results"])
     return None
 
 def get_img_results(query: str, safe_search: str):
